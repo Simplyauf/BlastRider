@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07171c" />
+    <meta name="description" content="BLASTWATER — a fast, bomb-only island survival game." />
+    <title>BLASTWATER — Last one above water wins</title>
+  </head>
+  <body>
+    <div id="game"></div>
+    <div id="vignette"></div>
+    <div id="crosshair" aria-hidden="true"><span></span><span></span></div>
+    <div id="aim-hint" class="hidden">RELEASE TO THROW</div>
+    <div id="hud" class="hidden">
+      <div class="hud-top">
+        <div class="brand-small">BLAST<span>WATER</span></div>
+        <div class="top-pill"><small>SURVIVORS</small><strong id="alive-count">8</strong></div>
+        <div class="top-pill"><small>NEXT TIDE</small><strong id="tide-timer">01:00</strong></div>
+        <button id="pause-button" class="icon-button" aria-label="Pause">Ⅱ</button>
+      </div>
+      <div id="compass"><div id="compass-strip"></div></div>
+      <div id="announcer" class="hidden"></div>
+      <div id="kill-feed"></div>
+      <div class="hud-bottom">
+        <div class="vitals">
+          <div class="vital-label"><span>HEALTH</span><b id="health-number">100</b></div>
+          <div class="meter"><div id="health-fill"></div></div>
+          <div class="vital-label stamina-label"><span>STAMINA</span><b id="stamina-number">100</b></div>
+          <div class="meter stamina"><div id="stamina-fill"></div></div>
+        </div>
+        <div class="bomb-panel">
+          <button class="bomb-slot active" data-type="timer"><span class="slot-key">1</span><span class="bomb-icon timer-icon">●</span><span><b>TIMER</b><small>BOUNCE + BOOM</small></span><em id="timer-count">2</em></button>
+          <button class="bomb-slot" data-type="impact"><span class="slot-key">2</span><span class="bomb-icon impact-icon">✦</span><span><b>IMPACT</b><small>QUICK DETONATION</small></span><em id="impact-count">0</em></button>
+          <div class="radar-slot"><div id="radar-ring">⌁</div><span><b>RADAR PULSE</b><small id="radar-status">SPACE · READY</small></span></div>
+        </div>
+        <div class="match-stats"><div><small>KILLS</small><b id="kills-count">0</b></div><div><small>CHIPS</small><b id="chips-count">0</b></div></div>
+      </div>
+      <div id="damage-flash"></div>
+    </div>
+    <div id="menu" class="screen">
+      <div class="menu-content">
+        <div class="eyebrow"><span class="live-dot"></span> SOLO SURVIVAL · 8 COMBATANTS</div>
+        <h1>BLAST<span>WATER</span></h1>
+        <p class="tagline">Last one above water wins.</p>
+        <p class="intro">Eight land on an island. Only one leaves. Loot bombs, expose enemies with radar, and keep moving as the tide swallows the shore.</p>
+        <button id="play-button" class="primary-button">DROP INTO THE ISLAND <span>↗</span></button>
+        <div class="menu-actions"><button id="controls-button">CONTROLS</button><button id="credits-button">CREDITS</button><button id="graphics-button">GRAPHICS: HIGH</button></div>
+        <div class="menu-footer">BUILT FOR THE TWIGPINE PROJECT TREETOP GAMES ROUND <span>✳</span> BEST ON DESKTOP</div>
+      </div>
+      <div class="menu-right"><div class="orbit-circle"><div class="orbit-inner">✦</div></div><div class="vertical-text">A BOMB-ONLY BATTLE ROYALE</div></div>
+    </div>
+    <div id="modal" class="screen hidden"><div class="modal-card"><button id="modal-close" class="close-button">✕</button><div id="modal-content"></div></div></div>
+    <div id="pause-screen" class="screen hidden"><div class="end-card"><div class="eyebrow">GAME PAUSED</div><h2>TAKE A BREATH.</h2><button id="resume-button" class="primary-button">RESUME <span>↗</span></button><button id="restart-pause" class="secondary-button">RESTART MATCH</button><button id="back-menu" class="secondary-button">MAIN MENU</button></div></div>
+    <div id="end-screen" class="screen hidden"><div class="end-card"><div id="end-kicker" class="eyebrow">MATCH COMPLETE</div><h2 id="end-title">THE ISLAND IS YOURS.</h2><p id="end-subtitle"></p><div id="end-stats"></div><button id="restart-button" class="primary-button">PLAY AGAIN <span>↗</span></button><button id="end-menu" class="secondary-button">MAIN MENU</button></div></div>
+    <div id="mobile-note">BLASTWATER plays best on a desktop with keyboard and mouse.</div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
