@@ -28,6 +28,8 @@ The published game's **Source Code** link downloads `source.zip`, a snapshot of 
 
 Click **Drop into the island** to capture the mouse pointer. If capture is released, use **Resume** to return to the match.
 
+The first match opens a short **How to Play** guide before the game starts. A field guide in the HUD then walks through moving, throwing, radar, and restocking. Press **H** during a match or choose **How to Play** from the pause menu to see the guide again.
+
 ## Game rules
 
 - Timer bombs bounce and explode after a short fuse. Impact bombs explode on contact.

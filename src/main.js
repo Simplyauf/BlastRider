@@ -54,6 +54,17 @@ let shake = 0;
 let lastBeep = 0;
 let audioCtx = null;
 let pointerActive = false;
+const tutorialSteps = [
+  { title: 'MOVE AROUND', copy: 'Use W A S D to move and the mouse to look. Shift makes you sprint.' },
+  { title: 'AIM & THROW', copy: 'Hold left click to charge. Follow the dotted landing arc, then release to throw.' },
+  { title: 'PULSE RADAR', copy: 'Press Space to reveal rivals. They will learn your location too.' },
+  { title: 'RESTOCK & SURVIVE', copy: 'Run through a glowing crate for more bombs. Stay above the rising water.' }
+];
+let tutorialActive = false;
+let tutorialStep = 0;
+let tutorialCrates = 0;
+let tutorialFinishTime = 0;
+let tutorialStartX = 0, tutorialStartZ = 0;
 
 function audio() {
   if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -79,6 +90,41 @@ function announce(message, duration = 2.6) {
   $('announcer').textContent = message;
   $('announcer').classList.remove('hidden');
   announceTimeout = duration;
+}
+function renderTutorialPrompt() {
+  const card = $('tutorial-prompt');
+  if (!tutorialActive || state === 'ended' || state === 'menu') { card.classList.add('hidden'); return; }
+  card.classList.remove('hidden');
+  if (tutorialStep >= tutorialSteps.length) {
+    $('tutorial-progress').textContent = 'FIELD GUIDE COMPLETE';
+    $('tutorial-title').textContent = 'NOW SURVIVE.';
+    $('tutorial-copy').textContent = 'Loot bombs, avoid the tide, and be the last fighter standing. Press H anytime for help.';
+  } else {
+    $('tutorial-progress').textContent = `FIELD GUIDE · ${tutorialStep + 1} / ${tutorialSteps.length}`;
+    $('tutorial-title').textContent = tutorialSteps[tutorialStep].title;
+    $('tutorial-copy').textContent = tutorialSteps[tutorialStep].copy;
+  }
+  $('tutorial-dots').innerHTML = tutorialSteps.map((_, index) => `<span class="${index <= tutorialStep ? 'done' : ''}"></span>`).join('');
+}
+function advanceTutorial(expectedStep) {
+  if (!tutorialActive || tutorialStep !== expectedStep) return;
+  tutorialStep++;
+  if (tutorialStep === 3 && tutorialCrates > 0) completeTutorial();
+  else renderTutorialPrompt();
+}
+function completeTutorial() {
+  if (!tutorialActive || tutorialStep >= tutorialSteps.length) return;
+  tutorialStep = tutorialSteps.length;
+  tutorialFinishTime = matchTime + 6;
+  localStorage.setItem('blastwater-tutorial-complete', '1');
+  renderTutorialPrompt();
+}
+function showHowToPlay(mode = 'menu') {
+  const action = mode === 'pause' ? 'RESUME MATCH' : 'START MATCH';
+  $('modal-content').innerHTML = `<div class="eyebrow">FIELD GUIDE · LAST ONE ABOVE WATER WINS</div><h2>HOW TO PLAY.</h2><p class="guide-lead">Eliminate seven rivals with bombs. Collect supplies and stay on dry land as the tide rises.</p><div class="guide-grid"><div><span class="guide-number">01 / MOVE</span><strong>FIND YOUR FEET</strong><p><b>W A S D</b> moves. Use the <b>mouse</b> to look and <b>Shift</b> to sprint. Walk through glowing crates to pick up bombs.</p></div><div><span class="guide-number">02 / ATTACK</span><strong>THROW A BOMB</strong><p><b>Hold left click</b> to charge. The dotted arc shows where it lands. <b>Release</b> to throw. Use <b>1 / 2</b> to swap bomb types.</p></div><div><span class="guide-number">03 / SURVIVE</span><strong>READ THE ISLAND</strong><p><b>Space</b> pulses radar, revealing rivals but exposing you. Avoid the <b>rising blue water</b>. The last fighter alive wins.</p></div></div><div class="guide-footnote">ESC PAUSES · H OPENS THIS GUIDE · F HOPS · C CROUCHES</div><button id="tutorial-start" class="primary-button">${action} <span>↗</span></button>`;
+  $('modal').classList.remove('hidden');
+  $('modal').classList.add('tutorial-modal');
+  $('tutorial-start').onclick = () => { $('modal').classList.add('hidden'); $('modal').classList.remove('tutorial-modal'); mode === 'pause' ? resume() : startMatch(); };
 }
 function feed(message) {
   const line = document.createElement('div');
@@ -116,16 +162,20 @@ function startMatch() {
   matchTime = 0; tideStage = 0; tideLevel = .15; radarCooldown = 0; radarReveal = 0; shake = 0; lastBeep = 0;
   yaw = .1; pitch = .17; charge = 0; charging = false; selectedBomb = 'timer';
   player = makeActor('You', 0, 0, '#e6a34e', true);
+  tutorialActive = localStorage.getItem('blastwater-tutorial-complete') !== '1';
+  tutorialStep = 0; tutorialCrates = 0; tutorialFinishTime = 0;
+  tutorialStartX = player.x; tutorialStartZ = player.z;
   for (let i = 0; i < 7; i++) {
     const a = (i / 7) * Math.PI * 2 + .2;
     const r = 27 + (i % 3) * 3;
     const types = ['aggressive', 'sneaky', 'coward'];
     makeActor(`Rival ${i + 1}`, Math.cos(a) * r, Math.sin(a) * r, botColors[i], false, types[i % 3]);
   }
-  $('menu').classList.add('hidden'); $('end-screen').classList.add('hidden'); $('pause-screen').classList.add('hidden'); $('hud').classList.remove('hidden');
+  $('menu').classList.add('hidden'); $('modal').classList.add('hidden'); $('modal').classList.remove('tutorial-modal'); $('end-screen').classList.add('hidden'); $('pause-screen').classList.add('hidden'); $('hud').classList.remove('hidden');
   $('crosshair').classList.add('visible');
   $('damage-flash').style.opacity = 0;
   updateHUD();
+  renderTutorialPrompt();
   announce('LAST ONE ABOVE WATER WINS', 3.2);
   renderer.domElement.requestPointerLock?.();
   tone(390, .11, 'triangle', .09, 570); tone(530, .17, 'triangle', .06, 780);
@@ -135,6 +185,7 @@ function endMatch(victory, cause = '') {
   state = 'ended'; charging = false; hideAim();
   document.exitPointerLock?.();
   $('crosshair').classList.remove('visible'); $('hud').classList.add('hidden');
+  $('tutorial-prompt').classList.add('hidden');
   $('end-screen').classList.remove('hidden');
   $('end-kicker').textContent = victory ? 'ISLAND CHAMPION' : 'MATCH OVER';
   $('end-title').textContent = victory ? 'THE ISLAND IS YOURS.' : 'THE TIDE CLAIMS ANOTHER.';
@@ -161,6 +212,7 @@ function resume() {
 function showMenu() {
   state = 'menu'; charging = false; hideAim(); document.exitPointerLock?.();
   $('menu').classList.remove('hidden'); $('pause-screen').classList.add('hidden'); $('end-screen').classList.add('hidden'); $('hud').classList.add('hidden'); $('crosshair').classList.remove('visible');
+  $('tutorial-prompt').classList.add('hidden');
 }
 
 function forwardVector() { return new THREE.Vector3(-Math.sin(yaw), 0, -Math.cos(yaw)); }
@@ -191,6 +243,7 @@ function throwPlayer() {
   const f = forwardVector();
   const spawn = new THREE.Vector3(player.x + f.x * .9, player.y + 1.62 + player.hop, player.z + f.z * .9);
   spawnBomb(player, selectedBomb, spawn, throwVelocity(charge));
+  advanceTutorial(1);
   charge = 0; updateHUD();
 }
 function throwBot(bot, target) {
@@ -342,6 +395,7 @@ function updatePlayer(dt) {
   const speed = crouch ? 2.8 : sprint ? 9.3 : 5.6;
   if (sprint) player.stamina = Math.max(0, player.stamina - 21 * dt); else player.stamina = Math.min(100, player.stamina + 14 * dt);
   moveWithCollisions(player, mx * speed * dt, mz * speed * dt, world.colliders);
+  if (tutorialStep === 0 && Math.hypot(player.x - tutorialStartX, player.z - tutorialStartZ) > 3) advanceTutorial(0);
   player.moveAmount = mag * (sprint ? 1.7 : 1);
   player.yaw = yaw;
   if (player.hop > 0 || player.velocityY > 0) {
@@ -355,6 +409,8 @@ function updatePlayer(dt) {
     if (c.available && Math.hypot(player.x - c.x, player.z - c.z) < 2.3) {
       c.available = false; c.respawn = matchTime + 26; c.mesh.visible = false;
       player.timer += 2; if (Math.random() < .75) player.impact += 1;
+      tutorialCrates++;
+      if (tutorialStep === 3) completeTutorial();
       announce('+ BOMBS RESTOCKED', 1.3); tone(690, .13, 'triangle', .06, 960);
     }
   }
@@ -385,7 +441,7 @@ function updateBots(dt) {
       if (distance > 12) { vx = goal.x - bot.x; vz = goal.z - bot.z; }
       else if (distance < 7 || bot.personality === 'coward' && bot.health < 45) { vx = bot.x - goal.x; vz = bot.z - goal.z; }
       else { vx = -(goal.z - bot.z) * bot.strafe; vz = (goal.x - bot.x) * bot.strafe; }
-      if (canSee && distance < 24 && distance > 4 && bot.cooldown <= 0) throwBot(bot, goal);
+      if (matchTime > 9 && canSee && distance < 24 && distance > 4 && bot.cooldown <= 0) throwBot(bot, goal);
       if (bot.pingCooldown <= 0 && distance > 20 && distance < 45 && Math.random() < .013) { bot.pingCooldown = 11 + Math.random() * 8; makeRadarRing(bot.x, bot.z, '#eeab79'); if (distance < 35) announce('ENEMY RADAR PULSE', 1.25); }
     }
     const mag = Math.hypot(vx, vz);
@@ -403,6 +459,7 @@ function useRadar() {
   if (state !== 'playing' || !player.alive || radarCooldown > 0) return;
   radarCooldown = 8; radarReveal = 2;
   makeRadarRing(player.x, player.z, '#9bffe5');
+  advanceTutorial(2);
   announce('PULSE OUT · YOU ARE EXPOSED', 1.4);
   for (const bot of actors) if (!bot.isPlayer && bot.alive && Math.hypot(bot.x - player.x, bot.z - player.z) < 48) { bot.lastKnown = { x: player.x, z: player.z }; bot.memory = 3; }
 }
@@ -490,6 +547,7 @@ function loop() {
     updateTide(dt);
     updateActorsVisual(dt);
     updateHUD();
+    if (tutorialActive && tutorialStep >= tutorialSteps.length && matchTime >= tutorialFinishTime) { tutorialActive = false; renderTutorialPrompt(); }
   } else if (state === 'menu') { world.update(performance.now() / 1000, .15); }
   if (state !== 'paused') updateFx(dt);
   updateCamera(dt);
@@ -503,6 +561,7 @@ document.addEventListener('keydown', e => {
   if (e.repeat) return;
   if (e.code === 'Escape') { if (state === 'playing') pause(); else if (state === 'paused') resume(); }
   if (state !== 'playing') return;
+  if (e.code === 'KeyH') { pause(); showHowToPlay('pause'); return; }
   if (e.code === 'Digit1' || e.code === 'KeyQ') selectBomb('timer');
   if (e.code === 'Digit2' || e.code === 'KeyE') selectBomb('impact');
   if (e.code === 'Space') useRadar();
@@ -526,20 +585,19 @@ document.addEventListener('pointerlockchange', () => { pointerActive = document.
 window.addEventListener('blur', () => { keys.clear(); if (state === 'playing') pause(); });
 window.addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); });
 
-$('play-button').onclick = startMatch;
+$('play-button').onclick = () => localStorage.getItem('blastwater-tutorial-complete') === '1' ? startMatch() : showHowToPlay('start');
 $('restart-button').onclick = startMatch;
 $('restart-pause').onclick = startMatch;
 $('resume-button').onclick = resume;
 $('pause-button').onclick = pause;
+$('pause-help').onclick = () => showHowToPlay('pause');
 $('back-menu').onclick = showMenu;
 $('end-menu').onclick = showMenu;
-$('controls-button').onclick = () => {
-  $('modal-content').innerHTML = `<div class="eyebrow">FIELD MANUAL</div><h2>HOW TO SURVIVE.</h2><p>Loot glowing crates for bombs. Hold the throw button to charge and follow the dotted landing arc. Every radar pulse reveals enemies and tells them where you are.</p><div class="control-grid"><div><span>MOVE</span><span class="key">W A S D</span></div><div><span>LOOK</span><span class="key">MOUSE</span></div><div><span>SPRINT</span><span class="key">SHIFT</span></div><div><span>CROUCH</span><span class="key">C / CTRL</span></div><div><span>HOP</span><span class="key">F</span></div><div><span>CHARGE / THROW</span><span class="key">HOLD / RELEASE CLICK</span></div><div><span>SWITCH BOMB</span><span class="key">1 / 2 · Q / E · SCROLL</span></div><div><span>RADAR PULSE</span><span class="key">SPACE</span></div></div>`;
-  $('modal').classList.remove('hidden');
-};
-$('credits-button').onclick = () => { $('modal-content').innerHTML = `<div class="eyebrow">MADE FOR THE GAMES ROUND</div><h2>CREDITS.</h2><p>BLASTWATER is an original browser game created for the Twigpine Project Treetop games round.</p><p>Art: procedural geometry and original code. Audio: synthesized in the browser. No third party art or audio assets are used.</p><p>Engine: Three.js. Build tool: Vite.</p>`; $('modal').classList.remove('hidden'); };
-$('modal-close').onclick = () => $('modal').classList.add('hidden');
-$('modal').onclick = e => { if (e.target === $('modal')) $('modal').classList.add('hidden'); };
+$('controls-button').onclick = () => showHowToPlay('menu');
+$('credits-button').onclick = () => { $('modal-content').innerHTML = `<div class="eyebrow">MADE FOR THE GAMES ROUND</div><h2>CREDITS.</h2><p>BLASTWATER is an original browser game created for the Twigpine Project Treetop games round.</p><p>Art: procedural geometry and original code. Audio: synthesized in the browser. No third party art or audio assets are used.</p><p>Engine: Three.js. Build tool: Vite.</p>`; $('modal').classList.remove('tutorial-modal'); $('modal').classList.remove('hidden'); };
+$('modal-close').onclick = () => { $('modal').classList.add('hidden'); $('modal').classList.remove('tutorial-modal'); };
+$('modal').onclick = e => { if (e.target === $('modal')) { $('modal').classList.add('hidden'); $('modal').classList.remove('tutorial-modal'); } };
+$('tutorial-dismiss').onclick = () => { tutorialActive = false; renderTutorialPrompt(); };
 $('graphics-button').onclick = () => { const low = localStorage.getItem('blastwater-low-graphics') !== '1'; localStorage.setItem('blastwater-low-graphics', low ? '1' : '0'); location.reload(); };
 document.querySelectorAll('.bomb-slot').forEach(el => el.onclick = () => selectBomb(el.dataset.type));
 world.update(0, .15);
