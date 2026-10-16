@@ -143,33 +143,54 @@ export function createWorld(scene, lowGraphics = false) {
 
 export function createFighter(color, isPlayer = false) {
   const group = new THREE.Group();
-  const bodyMat = new THREE.MeshStandardMaterial({ color, roughness: .8, flatShading: true });
-  const darkMat = new THREE.MeshStandardMaterial({ color: '#1c3438', roughness: .9, flatShading: true });
-  const skinMat = new THREE.MeshStandardMaterial({ color: isPlayer ? '#f2c694' : '#e9c9a1', roughness: .9 });
-  const torso = new THREE.Mesh(new THREE.CylinderGeometry(.42, .5, 1.05, 7), bodyMat);
-  torso.position.y = 1.28;
-  torso.castShadow = true;
-  group.add(torso);
-  const head = new THREE.Mesh(new THREE.IcosahedronGeometry(.34, 1), skinMat);
-  head.position.y = 2.07;
-  head.castShadow = true;
-  group.add(head);
-  const helmet = new THREE.Mesh(new THREE.SphereGeometry(.38, 9, 6, 0, Math.PI * 2, 0, Math.PI * .52), darkMat);
-  helmet.position.y = 2.13;
-  group.add(helmet);
-  const visor = new THREE.Mesh(new THREE.BoxGeometry(.54, .12, .11), new THREE.MeshBasicMaterial({ color: isPlayer ? '#ffbf61' : '#9ae8df' }));
-  visor.position.set(0, 2.07, -.31);
-  group.add(visor);
+  const suit = new THREE.MeshStandardMaterial({ color, roughness: .87 });
+  const armor = new THREE.MeshStandardMaterial({ color: '#344f4a', roughness: .81, metalness: .07 });
+  const dark = new THREE.MeshStandardMaterial({ color: '#182e30', roughness: .91 });
+  const trim = new THREE.MeshStandardMaterial({ color: isPlayer ? '#e2b264' : '#91c1b1', roughness: .74 });
+  const skin = new THREE.MeshStandardMaterial({ color: isPlayer ? '#c99166' : '#bb906f', roughness: .95 });
+  const add = (parent, geometry, material, x, y, z, sx = 1, sy = 1, sz = 1) => {
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(x, y, z);
+    mesh.scale.set(sx, sy, sz);
+    mesh.castShadow = true;
+    parent.add(mesh);
+    return mesh;
+  };
+  const smoothBall = new THREE.SphereGeometry(1, 12, 9);
+  const body = add(group, smoothBall, suit, 0, 1.35, 0, .47, .65, .30);
+  body.rotation.z = -.04;
+  add(group, smoothBall, armor, 0, 1.47, -.205, .40, .45, .14);
+  add(group, new THREE.BoxGeometry(.72, .12, .40), dark, 0, .91, 0);
+  add(group, new THREE.BoxGeometry(.20, .19, .16), trim, 0, .91, -.25);
+  for (const side of [-1, 1]) {
+    const strap = add(group, new THREE.BoxGeometry(.10, .60, .06), dark, side * .27, 1.56, -.31);
+    strap.rotation.z = side * .14;
+    add(group, new THREE.BoxGeometry(.16, .23, .09), trim, side * .22, 1.35, -.36);
+  }
+  add(group, smoothBall, skin, 0, 2.12, -.015, .29, .35, .27);
+  add(group, smoothBall, dark, 0, 2.32, .018, .355, .22, .325);
+  add(group, new THREE.BoxGeometry(.70, .055, .33), dark, 0, 2.21, -.22);
+  add(group, new THREE.BoxGeometry(.43, .095, .035), armor, 0, 2.27, -.337);
+  add(group, new THREE.BoxGeometry(.13, .035, .035), trim, 0, 2.27, -.36);
+  add(group, new THREE.BoxGeometry(.25, .36, .17), armor, 0, 1.37, .33);
   const limbs = [];
   for (const side of [-1, 1]) {
-    const arm = new THREE.Mesh(new THREE.CylinderGeometry(.15, .17, .88, 6), bodyMat);
-    arm.position.set(side * .62, 1.3, 0);
-    arm.castShadow = true;
+    const arm = new THREE.Group();
+    arm.position.set(side * .50, 1.75, 0);
     group.add(arm);
-    const leg = new THREE.Mesh(new THREE.CylinderGeometry(.18, .2, .86, 6), darkMat);
-    leg.position.set(side * .24, .47, 0);
-    leg.castShadow = true;
+    add(arm, smoothBall, armor, side * .055, -.075, 0, .22, .19, .23);
+    add(arm, new THREE.CylinderGeometry(.15, .17, .46, 9), suit, side * .08, -.33, 0);
+    add(arm, smoothBall, dark, side * .08, -.57, 0, .135, .13, .14);
+    add(arm, new THREE.CylinderGeometry(.115, .145, .36, 9), suit, side * .08, -.79, -.015);
+    add(arm, smoothBall, dark, side * .08, -1.01, -.035, .14, .12, .14);
+
+    const leg = new THREE.Group();
+    leg.position.set(side * .23, .90, 0);
     group.add(leg);
+    add(leg, smoothBall, suit, 0, -.23, 0, .22, .35, .23);
+    add(leg, smoothBall, armor, 0, -.49, -.045, .19, .14, .21);
+    add(leg, new THREE.CylinderGeometry(.13, .16, .34, 9), dark, 0, -.64, .015);
+    add(leg, smoothBall, dark, 0, -.79, -.09, .19, .13, .29);
     limbs.push({ arm, leg, side });
   }
   const marker = new THREE.Mesh(new THREE.RingGeometry(.59, .73, 24), new THREE.MeshBasicMaterial({ color: isPlayer ? '#ffd68d' : '#8bfff2', side: THREE.DoubleSide, transparent: true, opacity: .7 }));

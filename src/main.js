@@ -114,7 +114,7 @@ function renderTutorialPrompt() {
   } else {
     $('tutorial-progress').textContent = `FIELD GUIDE · ${tutorialStep + 1} / ${tutorialSteps.length}`;
     $('tutorial-title').textContent = tutorialSteps[tutorialStep].title;
-    const mobileCopies = ['Use the left stick to move. Drag the right side to look.', 'Hold THROW to charge, then release. Follow the dotted landing arc.', 'Tap RADAR to reveal rivals. It exposes you too.', 'Walk through a glowing crate for more bombs. Avoid the blue water.'];
+    const mobileCopies = ['Use the left stick to move. Push it forward to lock sprint until you lift your thumb. Drag the right side to look.', 'Hold THROW to charge, then release. Follow the dotted landing arc.', 'Tap RADAR to reveal rivals. It exposes you too.', 'Walk through a glowing crate for more bombs. Avoid the blue water.'];
     const padCopies = ['Use the left stick to move and the right stick to look.', 'Hold RT to charge, then release. Follow the dotted arc.', 'Press X to reveal rivals. It exposes you too.', 'Walk through a glowing crate for more bombs. Avoid the blue water.'];
     $('tutorial-copy').textContent = gamepadInput.connected ? padCopies[tutorialStep] : isTouchDevice ? mobileCopies[tutorialStep] : tutorialSteps[tutorialStep].copy;
   }
@@ -137,7 +137,7 @@ function showHowToPlay(mode = 'menu') {
   const action = mode === 'pause' ? 'RESUME MATCH' : 'START MATCH';
   const mobile = isTouchDevice && !gamepadInput.connected;
   const pad = gamepadInput.connected;
-  const moveCopy = mobile ? '<b>Left stick</b> moves. <b>Drag the right side</b> to look. Hold <b>Sprint</b> to run.' : pad ? '<b>Left stick</b> moves, <b>right stick</b> looks, and <b>LB</b> sprints.' : '<b>W A S D</b> moves. Use the <b>mouse</b> to look and <b>Shift</b> to sprint.';
+  const moveCopy = mobile ? '<b>Left stick</b> moves. Push it forward to lock <b>sprint</b> until you lift your thumb. <b>Drag the right side</b> to look.' : pad ? '<b>Left stick</b> moves, <b>right stick</b> looks, and <b>LB</b> sprints.' : '<b>W A S D</b> moves. Use the <b>mouse</b> to look and <b>Shift</b> to sprint.';
   const throwCopy = mobile ? '<b>Hold THROW</b> to charge, then release. The dotted arc shows where the bomb lands. Tap <b>BOMB</b> to switch.' : pad ? '<b>Hold RT</b> to charge and release to throw. Press <b>Y</b> to change bombs.' : '<b>Hold left click</b> to charge. The dotted arc shows where it lands. <b>Release</b> to throw. Use <b>1 / 2</b> to swap bomb types.';
   const radarCopy = mobile ? 'Tap <b>RADAR</b> to reveal rivals. It gives away your position too.' : pad ? 'Press <b>X</b> to pulse radar. It reveals rivals but gives away your position.' : '<b>Space</b> pulses radar, revealing rivals but exposing you.';
   const footnote = mobile ? 'BEST IN LANDSCAPE · HOP AND CROUCH BUTTONS ARE ON SCREEN' : pad ? 'A HOPS · B CROUCHES · START PAUSES' : 'ESC PAUSES · H OPENS THIS GUIDE · F HOPS · C CROUCHES';
@@ -182,7 +182,7 @@ function startMatch() {
   matchTime = 0; tideStage = 0; tideLevel = .15; radarCooldown = 0; radarReveal = 0; shake = 0; lastBeep = 0;
   yaw = .1; pitch = .17; charge = 0; charging = false; selectedBomb = 'timer';
   touchInput.x = 0; touchInput.y = 0; touchInput.sprint = false; touchInput.crouch = false; touchInput.stickId = null; touchInput.lookId = null; gamepadInput.charging = false;
-  $('touch-knob').style.transform = ''; $('touch-crouch').classList.remove('active'); $('touch-sprint').classList.remove('active');
+  $('touch-knob').style.transform = ''; $('touch-crouch').classList.remove('active'); $('touch-stick').classList.remove('sprinting');
   player = makeActor('You', 0, 0, '#e6a34e', true);
   tutorialActive = localStorage.getItem('blastwater-tutorial-complete') !== '1';
   tutorialStep = 0; tutorialCrates = 0; tutorialFinishTime = 0;
@@ -229,6 +229,8 @@ function endMatch(victory, cause = '') {
 function pause() {
   if (state !== 'playing') return;
   state = 'paused'; charging = false; hideAim();
+  touchInput.x = 0; touchInput.y = 0; touchInput.sprint = false; touchInput.stickId = null;
+  $('touch-stick').classList.remove('sprinting'); $('touch-knob').style.transform = '';
   document.exitPointerLock?.();
   $('pause-screen').classList.remove('hidden');
   $('mobile-controls').classList.add('hidden');
@@ -690,7 +692,19 @@ document.addEventListener('mouseup', e => { if (!isTouchDevice && e.button === 0
 document.addEventListener('wheel', e => { if (state === 'playing') { e.preventDefault(); selectBomb(selectedBomb === 'timer' ? 'impact' : 'timer'); } }, { passive: false });
 document.addEventListener('pointerlockchange', () => { pointerActive = document.pointerLockElement === renderer.domElement; if (!pointerActive && !isTouchDevice && !gamepadInput.connected && state === 'playing') pause(); });
 window.addEventListener('blur', () => { keys.clear(); if (state === 'playing') pause(); });
-window.addEventListener('resize', () => { camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); renderer.setSize(innerWidth, innerHeight); renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5)); if (isPortraitMobile()) { touchInput.x = 0; touchInput.y = 0; touchInput.sprint = false; charging = false; hideAim(); } });
+function resizeGame() {
+  camera.aspect = innerWidth / innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5));
+  if (isPortraitMobile()) {
+    touchInput.x = 0; touchInput.y = 0; touchInput.sprint = false;
+    $('touch-stick').classList.remove('sprinting');
+    charging = false; hideAim();
+  }
+}
+window.addEventListener('resize', resizeGame);
+window.visualViewport?.addEventListener('resize', resizeGame);
 
 function setupTouchControls() {
   if (!isTouchDevice) return;
@@ -703,10 +717,14 @@ function setupTouchControls() {
     const reach = Math.min(1, length / 42);
     touchInput.x = dx / length * reach; touchInput.y = dy / length * reach;
     knob.style.transform = `translate(${touchInput.x * 42}px, ${touchInput.y * 42}px)`;
+    if (!touchInput.sprint && dy < -49 && Math.abs(dx) < 36) {
+      touchInput.sprint = true;
+      stick.classList.add('sprinting');
+    }
   };
   stick.addEventListener('pointerdown', event => { event.preventDefault(); touchInput.stickId = event.pointerId; stick.setPointerCapture(event.pointerId); moveStick(event); });
   stick.addEventListener('pointermove', event => { if (event.pointerId === touchInput.stickId) moveStick(event); });
-  const resetStick = event => { if (event.pointerId !== touchInput.stickId) return; touchInput.stickId = null; touchInput.x = 0; touchInput.y = 0; knob.style.transform = ''; };
+  const resetStick = event => { if (event.pointerId !== touchInput.stickId) return; touchInput.stickId = null; touchInput.x = 0; touchInput.y = 0; touchInput.sprint = false; stick.classList.remove('sprinting'); knob.style.transform = ''; };
   stick.addEventListener('pointerup', resetStick); stick.addEventListener('pointercancel', resetStick);
   renderer.domElement.addEventListener('pointerdown', event => {
     if (event.pointerType !== 'touch' || state !== 'playing' || event.clientX < innerWidth * .38 || touchInput.lookId !== null) return;
@@ -726,16 +744,15 @@ function setupTouchControls() {
   press('touch-bomb', () => selectBomb(selectedBomb === 'timer' ? 'impact' : 'timer'));
   press('touch-hop', () => { if (player?.hop <= 0) player.velocityY = 6.7; });
   press('touch-crouch', () => { touchInput.crouch = !touchInput.crouch; $('touch-crouch').classList.toggle('active', touchInput.crouch); });
-  const sprint = $('touch-sprint');
-  sprint.addEventListener('pointerdown', event => { event.preventDefault(); sprint.setPointerCapture(event.pointerId); touchInput.sprint = true; sprint.classList.add('active'); });
-  const stopSprint = () => { touchInput.sprint = false; sprint.classList.remove('active'); };
-  sprint.addEventListener('pointerup', stopSprint); sprint.addEventListener('pointercancel', stopSprint);
   const throwButton = $('touch-throw');
   throwButton.addEventListener('pointerdown', event => { event.preventDefault(); if (state !== 'playing') return; throwButton.setPointerCapture(event.pointerId); if (player?.[selectedBomb] > 0) { charging = true; charge = .08; } else announce('OUT OF BOMBS · FIND A CRATE', 1.5); });
   throwButton.addEventListener('pointerup', event => { event.preventDefault(); throwPlayer(); });
   throwButton.addEventListener('pointercancel', () => { charging = false; hideAim(); });
 }
 setupTouchControls();
+document.addEventListener('selectstart', event => { if (!event.target.closest('input')) event.preventDefault(); });
+document.addEventListener('contextmenu', event => { if (!event.target.closest('input')) event.preventDefault(); });
+document.addEventListener('gesturestart', event => event.preventDefault(), { passive: false });
 
 $('play-button').onclick = () => localStorage.getItem('blastwater-tutorial-complete') === '1' ? startMatch() : showHowToPlay('start');
 $('restart-button').onclick = startMatch;

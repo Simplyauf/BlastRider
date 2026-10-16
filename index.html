@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
     <meta name="theme-color" content="#07171c" />
     <meta name="description" content="BLASTWATER — a fast, bomb-only island survival game." />
     <title>BLASTWATER — Last one above water wins</title>
@@ -59,14 +59,14 @@
     </div>
     <div id="modal" class="screen hidden"><div class="modal-card"><button id="modal-close" class="close-button">✕</button><div id="modal-content"></div></div></div>
     <div id="pause-screen" class="screen hidden"><div class="end-card"><div class="eyebrow">GAME PAUSED</div><h2>TAKE A BREATH.</h2><button id="resume-button" class="primary-button">RESUME <span>↗</span></button><button id="pause-help" class="secondary-button">HOW TO PLAY</button><button id="restart-pause" class="secondary-button">RESTART MATCH</button><button id="back-menu" class="secondary-button">MAIN MENU</button></div></div>
-    <div id="end-screen" class="screen hidden"><div class="end-card"><div id="end-kicker" class="eyebrow">MATCH COMPLETE</div><h2 id="end-title">THE ISLAND IS YOURS.</h2><p id="end-subtitle"></p><div id="end-stats"></div><div class="score-panel"><span>YOUR SCORE</span><strong id="end-score">0</strong><div id="score-submit"><input id="leaderboard-name" type="text" maxlength="16" placeholder="Your nickname" autocomplete="nickname" aria-label="Leaderboard nickname"><button id="submit-score">POST SCORE</button></div><p id="score-status" role="status"></p></div><button id="restart-button" class="primary-button">PLAY AGAIN <span>↗</span></button><button id="end-leaderboard" class="secondary-button">VIEW GLOBAL TOP 10</button><button id="end-menu" class="secondary-button">MAIN MENU</button></div></div>
+    <div id="end-screen" class="screen hidden"><div class="end-card"><div class="result-summary"><div id="end-kicker" class="eyebrow">MATCH COMPLETE</div><h2 id="end-title">THE ISLAND IS YOURS.</h2><p id="end-subtitle"></p><div id="end-stats"></div></div><div class="result-actions"><div class="score-panel"><span>YOUR SCORE</span><strong id="end-score">0</strong><div id="score-submit"><input id="leaderboard-name" type="text" maxlength="16" placeholder="Your nickname" autocomplete="nickname" aria-label="Leaderboard nickname"><button id="submit-score">POST SCORE</button></div><p id="score-status" role="status"></p></div><div class="result-buttons"><button id="restart-button" class="primary-button">PLAY AGAIN <span>↗</span></button><button id="end-leaderboard" class="secondary-button">VIEW GLOBAL TOP 10</button><button id="end-menu" class="secondary-button">MAIN MENU</button></div></div></div></div>
     <div id="mobile-controls" class="hidden" aria-label="Touch game controls">
-      <div id="touch-stick" aria-label="Move"><div id="touch-knob"></div><span>MOVE</span></div>
+      <div id="touch-stick" aria-label="Move and sprint"><div id="stick-sprint">↑ SPRINT</div><div id="touch-knob"></div><span>MOVE</span></div>
       <div id="touch-look-label">DRAG TO LOOK</div>
-      <div class="touch-left-actions"><button id="touch-sprint">SPRINT</button><button id="touch-crouch">CROUCH</button></div>
+      <div class="touch-left-actions"><button id="touch-crouch">CROUCH</button></div>
       <div class="touch-right-actions"><button id="touch-radar">RADAR</button><button id="touch-bomb">BOMB <span id="touch-bomb-type">TIMER</span></button><button id="touch-hop">HOP</button><button id="touch-throw">HOLD<br>THROW</button></div>
     </div>
-    <div id="rotate-screen"><div><span>↻</span><h2>ROTATE YOUR PHONE</h2><p>BLASTWATER plays in landscape. Turn your phone sideways to enter the island.</p></div></div>
+    <div id="rotate-screen"><div><span>↻</span><h2>ROTATE YOUR PHONE</h2><p>BLASTWATER plays in landscape. Turn your phone sideways to enter the island.</p><p class="rotate-help">If the screen stays upright, swipe down from the top of your phone and turn off Portrait Orientation Lock or rotation lock.</p></div></div>
     <div id="mobile-note">BLASTWATER plays best on a desktop with keyboard and mouse.</div>
     <script>
       if (location.protocol === 'file:') {

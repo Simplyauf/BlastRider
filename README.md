@@ -26,7 +26,7 @@ The published game's **Source Code** link downloads `source.zip`, a snapshot of 
 | Radar pulse | Space |
 | Pause | Esc |
 
-On a phone, rotate to landscape. The left stick moves; drag on the right side to look. Hold **THROW** to charge and release to fire. On-screen buttons handle sprint, crouch, hop, radar, and bomb switching.
+On a phone, rotate to landscape. The left stick moves; push it forward to lock sprint until you lift your thumb. Drag on the right side to look. Hold **THROW** to charge and release to fire. On-screen buttons handle crouch, hop, radar, and bomb switching. If the screen does not rotate, swipe down from the top and turn off portrait orientation lock.
 
 Standard controllers: left stick moves, right stick looks, RT charges/throws, X pulses radar, Y switches bombs, LB sprints, A hops, B crouches, and Start pauses.
 
