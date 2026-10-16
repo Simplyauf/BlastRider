@@ -13,6 +13,8 @@ npm run dev
 
 Open the local URL printed by Vite. For a production bundle, run `npm run build`; the output is in `dist/` and can be hosted as a static site.
 
+The published game's **Source Code** link downloads `source.zip`, a snapshot of the original source files and dependency lockfile.
+
 ## Controls
 
 | Action | Control |
