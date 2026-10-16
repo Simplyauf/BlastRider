@@ -2,6 +2,8 @@
 
 **Last one above water wins.** A single-player, third-person bomb arena for desktop and landscape mobile browsers. Eight combatants land on a small island, loot bombs, fight each other, and race the rising tide.
 
+**[Play BLASTWATER online](https://blastwater-treetop.astral-ring-8874.chatgpt.site)**
+
 Built during the Twigpine Project Treetop Games round, 9–16 October 2026.
 
 ## Play locally
