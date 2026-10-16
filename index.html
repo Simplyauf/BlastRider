@@ -17,6 +17,7 @@
         <div class="brand-small">BLAST<span>WATER</span></div>
         <div class="top-pill"><small>SURVIVORS</small><strong id="alive-count">8</strong></div>
         <div class="top-pill"><small>NEXT TIDE</small><strong id="tide-timer">01:00</strong></div>
+        <button id="hud-help" class="icon-button" aria-label="How to play">?</button>
         <button id="pause-button" class="icon-button" aria-label="Pause">Ⅱ</button>
       </div>
       <div id="tutorial-prompt" class="tutorial-prompt hidden" role="status" aria-live="polite">
@@ -50,15 +51,22 @@
         <h1>BLAST<span>WATER</span></h1>
         <p class="tagline">Last one above water wins.</p>
         <p class="intro">Eight land on an island. Only one leaves. Loot bombs, expose enemies with radar, and keep moving as the tide swallows the shore.</p>
-        <button id="play-button" class="primary-button">DROP INTO THE ISLAND <span>↗</span></button>
-        <div class="menu-actions"><button id="controls-button">HOW TO PLAY</button><button id="credits-button">CREDITS</button><button id="graphics-button">GRAPHICS: HIGH</button><a href="/source.zip" download>SOURCE CODE</a></div>
+        <div class="menu-primary-actions"><button id="play-button" class="primary-button">DROP INTO THE ISLAND <span>↗</span></button><button id="multiplayer-button" class="multiplayer-button">MULTIPLAYER <small>COMING SOON</small></button></div>
+        <div class="menu-actions"><span id="help-nudge" class="help-nudge hidden" aria-hidden="true">↘ START HERE</span><button id="controls-button">HOW TO PLAY</button><button id="leaderboard-button">LEADERBOARD</button><button id="credits-button">CREDITS</button><button id="graphics-button">GRAPHICS: HIGH</button><a id="source-link" href="/source.zip" download>SOURCE CODE</a></div>
         <div class="menu-footer">BUILT FOR THE TWIGPINE PROJECT TREETOP GAMES ROUND <span>✳</span> BEST ON DESKTOP</div>
       </div>
       <div class="menu-right"><div class="orbit-circle"><div class="orbit-inner">✦</div></div><div class="vertical-text">A BOMB-ONLY BATTLE ROYALE</div></div>
     </div>
     <div id="modal" class="screen hidden"><div class="modal-card"><button id="modal-close" class="close-button">✕</button><div id="modal-content"></div></div></div>
     <div id="pause-screen" class="screen hidden"><div class="end-card"><div class="eyebrow">GAME PAUSED</div><h2>TAKE A BREATH.</h2><button id="resume-button" class="primary-button">RESUME <span>↗</span></button><button id="pause-help" class="secondary-button">HOW TO PLAY</button><button id="restart-pause" class="secondary-button">RESTART MATCH</button><button id="back-menu" class="secondary-button">MAIN MENU</button></div></div>
-    <div id="end-screen" class="screen hidden"><div class="end-card"><div id="end-kicker" class="eyebrow">MATCH COMPLETE</div><h2 id="end-title">THE ISLAND IS YOURS.</h2><p id="end-subtitle"></p><div id="end-stats"></div><button id="restart-button" class="primary-button">PLAY AGAIN <span>↗</span></button><button id="end-menu" class="secondary-button">MAIN MENU</button></div></div>
+    <div id="end-screen" class="screen hidden"><div class="end-card"><div id="end-kicker" class="eyebrow">MATCH COMPLETE</div><h2 id="end-title">THE ISLAND IS YOURS.</h2><p id="end-subtitle"></p><div id="end-stats"></div><div class="score-panel"><span>YOUR SCORE</span><strong id="end-score">0</strong><div id="score-submit"><input id="leaderboard-name" type="text" maxlength="16" placeholder="Your nickname" autocomplete="nickname" aria-label="Leaderboard nickname"><button id="submit-score">POST SCORE</button></div><p id="score-status" role="status"></p></div><button id="restart-button" class="primary-button">PLAY AGAIN <span>↗</span></button><button id="end-leaderboard" class="secondary-button">VIEW GLOBAL TOP 10</button><button id="end-menu" class="secondary-button">MAIN MENU</button></div></div>
+    <div id="mobile-controls" class="hidden" aria-label="Touch game controls">
+      <div id="touch-stick" aria-label="Move"><div id="touch-knob"></div><span>MOVE</span></div>
+      <div id="touch-look-label">DRAG TO LOOK</div>
+      <div class="touch-left-actions"><button id="touch-sprint">SPRINT</button><button id="touch-crouch">CROUCH</button></div>
+      <div class="touch-right-actions"><button id="touch-radar">RADAR</button><button id="touch-bomb">BOMB <span id="touch-bomb-type">TIMER</span></button><button id="touch-hop">HOP</button><button id="touch-throw">HOLD<br>THROW</button></div>
+    </div>
+    <div id="rotate-screen"><div><span>↻</span><h2>ROTATE YOUR PHONE</h2><p>BLASTWATER plays in landscape. Turn your phone sideways to enter the island.</p></div></div>
     <div id="mobile-note">BLASTWATER plays best on a desktop with keyboard and mouse.</div>
     <script>
       if (location.protocol === 'file:') {

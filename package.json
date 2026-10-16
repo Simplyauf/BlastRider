@@ -5,8 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
-    "build": "vite build",
-    "preview": "vite preview --host 0.0.0.0"
+    "build": "node scripts/build-worker.mjs",
+    "build:client": "vite build --outDir .client-build",
+    "preview": "vite preview --outDir .client-build --host 0.0.0.0"
   },
   "dependencies": {
     "three": "^0.180.0"
